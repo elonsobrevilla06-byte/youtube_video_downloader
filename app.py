@@ -74,6 +74,9 @@ def run_download(job_id, url, quality, audio_only, playlist):
         "progress_hooks": [make_progress_hook(job_id)],
         "quiet": True,
         "no_warnings": True,
+        "extractor_args": {
+            "youtube": {"player_client": ["android", "web"]}
+        },
     }
 
     if not audio_only:
