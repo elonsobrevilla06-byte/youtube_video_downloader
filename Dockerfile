@@ -12,4 +12,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Render sets $PORT at runtime — don't hardcode 5000
-CMD gunicorn -w 2 -b 0.0.0.0:$PORT app:app
+CMD gunicorn -w 1 --threads 4 -b 0.0.0.0:$PORT app:app
