@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Downloader</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>YouTube Downloader</h1>
+      <p class="subtitle">Powered by Elon; download videos or audio</p>
+    </header>
+
+    <form id="download-form">
+      <div class="field">
+        <label for="url">Video or Playlist URL</label>
+        <input type="url" id="url" name="url" placeholder="https://www.youtube.com/watch?v=..." required>
+      </div>
+
+      <div class="field">
+        <label>Download As</label>
+        <div class="toggle-group">
+          <label class="toggle-option">
+            <input type="radio" name="download_type" value="video" checked>
+            <span>Video</span>
+          </label>
+          <label class="toggle-option">
+            <input type="radio" name="download_type" value="mp3">
+            <span>MP3</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="field" id="quality-field">
+        <label for="quality">Max Quality</label>
+        <select id="quality" name="quality">
+          <option value="best">Best available</option>
+          <option value="2160">2160p (4K)</option>
+          <option value="1440">1440p</option>
+          <option value="1080" selected>1080p</option>
+          <option value="720">720p</option>
+          <option value="480">480p</option>
+          <option value="360">360p</option>
+        </select>
+      </div>
+
+      <div class="field-checkboxes">
+        <label class="checkbox">
+          <input type="checkbox" id="playlist" name="playlist">
+          <span>Download entire playlist</span>
+        </label>
+      </div>
+
+      <button type="submit" id="submit-btn">Download</button>
+    </form>
+
+    <div id="status-panel" class="status-panel hidden">
+      <p id="status-title" class="status-title"></p>
+      <div class="progress-bar">
+        <div id="progress-fill" class="progress-fill"></div>
+      </div>
+      <p id="status-detail" class="status-detail"></p>
+      <a id="download-link" class="download-link hidden" href="#">Save file</a>
+    </div>
+
+    <div id="error-panel" class="error-panel hidden"></div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
