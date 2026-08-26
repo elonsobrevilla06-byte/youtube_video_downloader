@@ -12,6 +12,17 @@ app = Flask(__name__)
 DOWNLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "downloads")
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
+# Render mounts Secret Files as read-only. yt-dlp needs to WRITE to the
+# cookie file (to save rotated/refreshed cookies), so copy it into a
+# writable location once at startup and use that copy instead.
+import shutil
+
+COOKIE_SOURCE = "/etc/secrets/cookies.txt"
+COOKIE_PATH = os.path.join(DOWNLOAD_DIR, "cookies.txt")
+
+if os.path.exists(COOKIE_SOURCE):
+    shutil.copy(COOKIE_SOURCE, COOKIE_PATH)
+
 # Safety net: if a file finishes but is never actually downloaded (user
 # closes the tab, etc.), remove it after this long so it doesn't sit
 # on the server forever.
@@ -78,9 +89,10 @@ def run_download(job_id, url, quality, audio_only, playlist):
             "youtube": {"player_client": ["android"]}
         },
     }
-    cookie_path = "/etc/secrets/cookies.txt"
-    if os.path.exists(cookie_path):
-        ydl_opts["cookiefile"] = cookie_path
+
+    if os.path.exists(COOKIE_PATH):
+        ydl_opts["cookiefile"] = COOKIE_PATH
+
     if not audio_only:
         ydl_opts["merge_output_format"] = "mp4"
 
