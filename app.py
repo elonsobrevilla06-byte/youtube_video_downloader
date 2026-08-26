@@ -114,7 +114,7 @@ def run_download(job_id, url, quality, audio_only, playlist):
         "no_warnings": True,
         "extractor_args": {
             "youtube": {
-                "player_client": ["tv","android", "web"],
+                "player_client": ["android", "web", "tv", "mweb"],
                 "formats": ["missing_pot"],
             }
         },
