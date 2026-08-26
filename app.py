@@ -78,7 +78,9 @@ def run_download(job_id, url, quality, audio_only, playlist):
             "youtube": {"player_client": ["android"]}
         },
     }
-
+    cookie_path = "/etc/secrets/cookies.txt"
+    if os.path.exists(cookie_path):
+        ydl_opts["cookiefile"] = cookie_path
     if not audio_only:
         ydl_opts["merge_output_format"] = "mp4"
 
