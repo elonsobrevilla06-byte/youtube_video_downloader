@@ -1,3 +1,16 @@
+#!/usr/bin/env python3
+"""
+Flask backend for the YouTube Downloader web app.
+
+Requirements:
+    pip install flask yt-dlp
+    ffmpeg must be installed and on PATH (for audio extraction / merging).
+
+Run:
+    python app.py
+Then open:
+    http://127.0.0.1:5000
+"""
 
 import os
 import uuid
@@ -45,21 +58,27 @@ def schedule_cleanup(job_id, filepath):
     threading.Thread(target=_cleanup, daemon=True).start()
 
 
-# def build_format_string(quality: str, audio_only: bool) -> str:
-#     if audio_only:
-#         return "bestaudio/best"
-#     if quality == "best":
-#         return "bestvideo+bestaudio/best"
-#     height = quality.rstrip("p")
-#     return f"bestvideo[height<={height}]+bestaudio/best[height<={height}]"
-
 def build_format_string(quality: str, audio_only: bool) -> str:
+    """
+    Always returns a format selector that matches *something*.
+    Resolution preference is handled separately via format_sort so a
+    missing exact-height match never causes a hard failure.
+    """
     if audio_only:
         return "bestaudio/best"
+    return "bv*+ba/b"
+
+
+def build_format_sort(quality: str):
+    """
+    Returns a yt-dlp format_sort list that nudges format selection toward
+    the requested resolution, without eliminating other options if an
+    exact match isn't available for the client/video in question.
+    """
     if quality == "best":
-        return "bestvideo*+bestaudio/best"
+        return None
     height = quality.rstrip("p")
-    return f"bestvideo*[height<={height}]+bestaudio/best[height<={height}]/best"
+    return [f"res:{height}"]
 
 
 def make_progress_hook(job_id):
@@ -97,6 +116,10 @@ def run_download(job_id, url, quality, audio_only, playlist):
             "youtube": {"player_client": ["android", "web"]}
         },
     }
+
+    format_sort = build_format_sort(quality)
+    if format_sort:
+        ydl_opts["format_sort"] = format_sort
 
     if os.path.exists(COOKIE_PATH):
         ydl_opts["cookiefile"] = COOKIE_PATH
@@ -208,8 +231,22 @@ def get_file(job_id):
     download_name = filename.split("_", 1)[-1]
     mimetype = "audio/mpeg" if download_name.lower().endswith(".mp3") else "video/mp4"
 
+    # Content-Disposition headers must be Latin-1 encodable. Video titles
+    # can contain characters (Japanese, Korean, emoji, etc.) that aren't,
+    # so we send an ASCII-safe fallback name plus an RFC 5987 UTF-8
+    # encoded filename*= for browsers that support it (all modern ones do).
+    import re
+    from urllib.parse import quote
+
+    ascii_fallback = download_name.encode("ascii", "ignore").decode("ascii").strip()
+    ascii_fallback = re.sub(r'[\\/*?:"<>|]', "", ascii_fallback) or "download"
+    utf8_quoted = quote(download_name)
+
     response = Response(data, mimetype=mimetype)
-    response.headers["Content-Disposition"] = f'attachment; filename="{download_name}"'
+    response.headers["Content-Disposition"] = (
+        f'attachment; filename="{ascii_fallback}"; '
+        f"filename*=UTF-8''{utf8_quoted}"
+    )
     return response
 
 
