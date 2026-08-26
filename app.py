@@ -113,7 +113,10 @@ def run_download(job_id, url, quality, audio_only, playlist):
         "quiet": True,
         "no_warnings": True,
         "extractor_args": {
-            "youtube": {"player_client": ["android", "web"]}
+            "youtube": {
+                "player_client": ["tv", "android", "web"],
+                "formats": ["missing_pot"],
+            }
         },
     }
 
