@@ -45,13 +45,21 @@ def schedule_cleanup(job_id, filepath):
     threading.Thread(target=_cleanup, daemon=True).start()
 
 
+# def build_format_string(quality: str, audio_only: bool) -> str:
+#     if audio_only:
+#         return "bestaudio/best"
+#     if quality == "best":
+#         return "bestvideo+bestaudio/best"
+#     height = quality.rstrip("p")
+#     return f"bestvideo[height<={height}]+bestaudio/best[height<={height}]"
+
 def build_format_string(quality: str, audio_only: bool) -> str:
     if audio_only:
         return "bestaudio/best"
     if quality == "best":
-        return "bestvideo+bestaudio/best"
+        return "bestvideo*+bestaudio/best"
     height = quality.rstrip("p")
-    return f"bestvideo[height<={height}]+bestaudio/best[height<={height}]"
+    return f"bestvideo*[height<={height}]+bestaudio/best[height<={height}]/best"
 
 
 def make_progress_hook(job_id):
@@ -86,7 +94,7 @@ def run_download(job_id, url, quality, audio_only, playlist):
         "quiet": True,
         "no_warnings": True,
         "extractor_args": {
-            "youtube": {"player_client": ["android"]}
+            "youtube": {"player_client": ["android", "web"]}
         },
     }
 
