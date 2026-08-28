@@ -3,20 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>YouTube Downloader</title>
+  <title>Video Downloader</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>YouTube Downloader</h1>
-      <p class="subtitle">Powered by Elon; download videos or audio</p>
+      <h1>Video Downloader</h1>
+      <p class="subtitle">YouTube, Instagram &amp; Facebook — video or audio</p>
     </header>
 
     <form id="download-form">
       <div class="field">
-        <label for="url">Video or Playlist URL</label>
-        <input type="url" id="url" name="url" placeholder="https://www.youtube.com/watch?v=..." required>
+        <label for="url">Video, Reel, or Post URL</label>
+        <input type="url" id="url" name="url" placeholder="Paste a YouTube, Instagram, or Facebook link..." required>
+        <p id="platform-badge" class="platform-badge hidden"></p>
       </div>
 
       <div class="field">
@@ -49,7 +50,7 @@
       <div class="field-checkboxes">
         <label class="checkbox">
           <input type="checkbox" id="playlist" name="playlist">
-          <span>Download entire playlist</span>
+          <span>Download entire playlist / profile (YouTube playlists, IG or FB profiles)</span>
         </label>
       </div>
 

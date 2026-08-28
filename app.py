@@ -13,14 +13,43 @@ Then open:
 """
 
 import os
+import re
 import uuid
 import threading
 import time
+from urllib.parse import urlparse
 from flask import Flask, render_template, request, jsonify, Response
 
 import yt_dlp
 
 app = Flask(__name__)
+
+# Domains we knowingly support. yt-dlp itself supports hundreds of sites,
+# but we deliberately restrict the UI to these so users get a clear,
+# friendly error instead of a confusing yt-dlp stack trace for something
+# like a random news site or a private/members-only page.
+SUPPORTED_DOMAINS = {
+    "youtube.com": "YouTube",
+    "youtu.be": "YouTube",
+    "m.youtube.com": "YouTube",
+    "instagram.com": "Instagram",
+    "www.instagram.com": "Instagram",
+    "facebook.com": "Facebook",
+    "www.facebook.com": "Facebook",
+    "m.facebook.com": "Facebook",
+    "web.facebook.com": "Facebook",
+    "fb.watch": "Facebook",
+}
+
+
+def detect_platform(url: str):
+    """Returns the platform name if url's host is supported, else None."""
+    try:
+        host = urlparse(url).netloc.lower()
+        host = re.sub(r"^www\.", "", host) if host not in SUPPORTED_DOMAINS else host
+    except Exception:
+        return None
+    return SUPPORTED_DOMAINS.get(host) or SUPPORTED_DOMAINS.get(re.sub(r"^www\.", "", host))
 
 DOWNLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "downloads")
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
@@ -173,6 +202,12 @@ def start_download():
     if not url:
         return jsonify({"error": "URL is required"}), 400
 
+    platform = detect_platform(url)
+    if not platform:
+        return jsonify({
+            "error": "Unsupported link. Please paste a YouTube, Instagram, or Facebook URL."
+        }), 400
+
     quality = data.get("quality", "best")
     audio_only = bool(data.get("audio_only", False))
     playlist = bool(data.get("playlist", False))
@@ -184,6 +219,7 @@ def start_download():
         "speed": "",
         "eta": "",
         "title": "",
+        "platform": platform,
         "filename": None,
         "error": None,
     }

@@ -8,6 +8,8 @@ const downloadLink = document.getElementById("download-link");
 const errorPanel = document.getElementById("error-panel");
 const downloadTypeRadios = document.querySelectorAll('input[name="download_type"]');
 const qualityField = document.getElementById("quality-field");
+const urlField = document.getElementById("url");
+const platformBadge = document.getElementById("platform-badge");
 
 function toggleFormatFields() {
   const isMp3 = document.querySelector('input[name="download_type"]:checked').value === "mp3";
@@ -16,6 +18,40 @@ function toggleFormatFields() {
 
 downloadTypeRadios.forEach((radio) => radio.addEventListener("change", toggleFormatFields));
 toggleFormatFields(); // set correct initial state on page load
+
+// Client-side platform detection is just for a nice badge next to the
+// input; the server independently validates the URL, so this never
+// needs to be exhaustive or airtight.
+const PLATFORM_PATTERNS = [
+  { name: "YouTube", re: /(^|\.)youtube\.com$|(^|\.)youtu\.be$/i },
+  { name: "Instagram", re: /(^|\.)instagram\.com$/i },
+  { name: "Facebook", re: /(^|\.)facebook\.com$|(^|\.)fb\.watch$/i },
+];
+
+function updatePlatformBadge() {
+  const value = urlField.value.trim();
+  if (!value) {
+    platformBadge.classList.add("hidden");
+    return;
+  }
+  let host;
+  try {
+    host = new URL(value).hostname;
+  } catch {
+    platformBadge.classList.add("hidden");
+    return;
+  }
+  const match = PLATFORM_PATTERNS.find((p) => p.re.test(host));
+  if (match) {
+    platformBadge.textContent = `Detected: ${match.name}`;
+    platformBadge.classList.remove("hidden");
+  } else {
+    platformBadge.textContent = "Unsupported link — use YouTube, Instagram, or Facebook";
+    platformBadge.classList.remove("hidden");
+  }
+}
+
+urlField.addEventListener("input", updatePlatformBadge);
 
 let pollTimer = null;
 
